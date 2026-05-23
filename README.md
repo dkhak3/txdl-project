@@ -1,70 +1,132 @@
-# Getting Started with Create React App
+# TXDL Project
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Ứng dụng ReactJS dùng để:
 
-## Available Scripts
+- Upload file Excel
+- Lọc dữ liệu theo:
+  - Ngày phản hồi
+  - Tên nhân viên QLCL-DV
+- Export kết quả ra Excel
 
-In the project directory, you can run:
+---
 
-### `npm start`
+# Công nghệ sử dụng
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- ReactJS
+- Redux Toolkit
+- XLSX
+- File Saver
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+# Clone project
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+git clone https://github.com/TEN_GITHUB/txdl-project.git
+```
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Di chuyển vào project
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+cd txdl-project
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+# Cài dependencies
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+npm install
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Hoặc:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+npm i
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+# Các package cần thiết
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Nếu thiếu package thì cài:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+npm install @reduxjs/toolkit react-redux
+```
 
-### Code Splitting
+```bash
+npm install xlsx
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+npm install file-saver
+```
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# Chạy project
 
-### Making a Progressive Web App
+```bash
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Project sẽ chạy tại:
 
-### Advanced Configuration
+```plaintext
+http://localhost:3000
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+# Build production
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+npm run build
+```
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# Cấu trúc project
+
+```plaintext
+src/
+│
+├── app/
+├── features/
+├── components/
+├── utils/
+├── styles/
+└── App.js
+```
+
+---
+
+# Tính năng
+
+- Upload Excel
+- Filter theo ngày
+- Filter nhiều nhân viên
+- Normalize tiếng Việt
+- Export Excel
+- Redux Toolkit
+- Responsive UI
+
+---
+
+# Lưu ý
+
+File Excel cần có các cột:
+
+- Ngày phản hồi
+- Tên nhân viên QLCL-DV
+- 1/ Chi nhánh/Đơn vị:
+- Nội dung tiếp nhận Phản ánh
+
+---
+
+# Author
+
+TXDL Project
