@@ -75,6 +75,16 @@ body {
   margin-top: 10px;
 }
 
+.button-disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+
+  transform: none !important;
+
+  box-shadow: none !important;
+}
+
 .app-button {
   border: none;
   outline: none;

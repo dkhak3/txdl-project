@@ -11,6 +11,9 @@ export default function FilterForm({
   handleFileUpload,
   handleFilter,
   handleExportExcel,
+  results,
+  setCurrentPage,
+  hasRequiredData,
 }) {
   return (
     <div className="filter-card">
@@ -55,11 +58,27 @@ export default function FilterForm({
       </div>
 
       <div className="button-group">
-        <Button onClick={handleFilter}>Tìm kiếm</Button>
-
-        <Button className="export-button" onClick={handleExportExcel}>
-          Export Excel
+        <Button
+          onClick={handleFilter}
+          disabled={!startDate || !endDate || !employeeInput}
+        >
+          Tìm kiếm
         </Button>
+
+        {results.length > 0 && (
+          <Button className="export-button" onClick={handleExportExcel}>
+            Export Excel
+          </Button>
+        )}
+
+        {hasRequiredData && (
+          <Button
+            className="report-button"
+            onClick={() => setCurrentPage("report")}
+          >
+            Xem Báo Cáo
+          </Button>
+        )}
       </div>
     </div>
   );

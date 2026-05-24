@@ -1,9 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  excelData: [],
+  excelData: [], // sheet1
 
-  results: [],
+  secondSheetData: [], // sheet2
+
+  results: [], // kết quả filter sheet1
 
   startDate: "",
 
@@ -20,6 +22,10 @@ const excelSlice = createSlice({
   reducers: {
     setExcelData: (state, action) => {
       state.excelData = action.payload;
+    },
+
+    setSecondSheetData: (state, action) => {
+      state.secondSheetData = action.payload;
     },
 
     setResults: (state, action) => {
@@ -42,6 +48,7 @@ const excelSlice = createSlice({
 
 export const {
   setExcelData,
+  setSecondSheetData,
   setResults,
   setStartDate,
   setEndDate,

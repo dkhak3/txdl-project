@@ -12,23 +12,36 @@ export default function ResultTable({ results }) {
       <table>
         <thead>
           <tr>
-            <th>STT</th>
+            <th>STT job</th>
             <th>Ngày phản hồi</th>
             <th>Tên NV QLCL-DV</th>
             <th>Nội dung tiếp nhận</th>
           </tr>
         </thead>
 
-        <tbody>
+        {/* <tbody>
           {results.map((row, index) => (
             <tr key={index}>
-              <td>{index + 1}</td>
+              <td>{row["STT"]}</td>
 
               <td>{formatDate(row["Ngày phản hồi"])}</td>
 
               <td>{row["Tên nhân viên QLCL-DV"]}</td>
 
               <td>{row["Nội dung tiếp nhận Phản ánh"]}</td>
+            </tr>
+          ))}
+        </tbody> */}
+        <tbody>
+          {results.map((item, index) => (
+            <tr key={index}>
+              <td>{item["STT"]}</td>
+
+              <td>{formatDate(item["Ngày phản hồi"])}</td>
+
+              <td>{item["Tên nhân viên QLCL-DV"]}</td>
+
+              <td>{item["Nội dung tiếp nhận Phản ánh"]}</td>
             </tr>
           ))}
         </tbody>
