@@ -22,7 +22,7 @@
 # Clone project
 
 ```bash
-git clone https://github.com/TEN_GITHUB/txdl-project.git
+git clone https://github.com/dkhak3/txdl-project
 ```
 
 ---
