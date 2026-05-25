@@ -128,7 +128,7 @@ export default function ReportPage({ setCurrentPage }) {
         return false;
       }
 
-      // const sheet2Employee = normalizeText(row[1]);
+      const sheet2Employee = normalizeText(row[1]);
       // console.log(
       //   "sheet2Employee",
       //   sheet2Employee,
