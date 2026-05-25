@@ -113,7 +113,7 @@ export default function ReportPage({ setCurrentPage }) {
   const reportData = results.map((item, index) => {
     // SHEET1
 
-    const employeeName = normalizeText(item["Tên nhân viên QLCL-DV"]);
+    const employeeName = normalizeText(item["STT"]);
 
     const rawContent = item["Nội dung tiếp nhận Phản ánh"] || "";
 
@@ -128,7 +128,13 @@ export default function ReportPage({ setCurrentPage }) {
         return false;
       }
 
-      const sheet2Employee = normalizeText(row[3]);
+      const sheet2Employee = normalizeText(row[1]);
+      console.log(
+        "sheet2Employee",
+        sheet2Employee,
+        "employeeName:",
+        employeeName,
+      );
 
       return sheet2Employee === employeeName;
     });
@@ -162,6 +168,14 @@ export default function ReportPage({ setCurrentPage }) {
     const otherViolationText =
       !isKhongViPham && !isCoViPham ? violationRaw : "";
 
+    // console.log(
+    //   "matchedRow:",
+    //   matchedRow,
+    //   "violationRaw:",
+    //   violationRaw,
+    //   "normalizedViolation:",
+    //   normalizedViolation,
+    // );
     return {
       // STT WEB
 
