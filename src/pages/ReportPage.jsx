@@ -129,12 +129,6 @@ export default function ReportPage({ setCurrentPage }) {
       }
 
       const sheet2Employee = normalizeText(row[1]);
-      // console.log(
-      //   "sheet2Employee",
-      //   sheet2Employee,
-      //   "employeeName:",
-      //   employeeName,
-      // );
 
       return sheet2Employee === employeeName;
     });
@@ -168,14 +162,6 @@ export default function ReportPage({ setCurrentPage }) {
     const otherViolationText =
       !isKhongViPham && !isCoViPham ? violationRaw : "";
 
-    // console.log(
-    //   "matchedRow:",
-    //   matchedRow,
-    //   "violationRaw:",
-    //   violationRaw,
-    //   "normalizedViolation:",
-    //   normalizedViolation,
-    // );
     return {
       // STT WEB
 
@@ -197,11 +183,11 @@ export default function ReportPage({ setCurrentPage }) {
 
       // KHÔNG VI PHẠM
 
-      khongViPham: isKhongViPham ? "1" : "",
+      khongViPham: isKhongViPham ? 1 : "",
 
       // VI PHẠM
 
-      viPham: isCoViPham ? "1" : otherViolationText,
+      viPham: isCoViPham ? 1 : otherViolationText,
     };
   });
 
