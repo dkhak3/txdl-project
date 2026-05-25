@@ -170,7 +170,7 @@ export default function ReportPage({ setCurrentPage }) {
     };
   });
 
-  console.log("REPORT DATA:", reportData);
+  // console.log("REPORT DATA:", reportData);
 
   return (
     <div className="report-page">

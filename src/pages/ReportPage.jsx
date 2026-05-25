@@ -128,13 +128,13 @@ export default function ReportPage({ setCurrentPage }) {
         return false;
       }
 
-      const sheet2Employee = normalizeText(row[1]);
-      console.log(
-        "sheet2Employee",
-        sheet2Employee,
-        "employeeName:",
-        employeeName,
-      );
+      // const sheet2Employee = normalizeText(row[1]);
+      // console.log(
+      //   "sheet2Employee",
+      //   sheet2Employee,
+      //   "employeeName:",
+      //   employeeName,
+      // );
 
       return sheet2Employee === employeeName;
     });
