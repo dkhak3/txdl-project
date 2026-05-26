@@ -241,9 +241,9 @@
 
   vertical-align: middle;
 
-  border: 1px solid #dbe4f0;
+  /* border: 1px solid #dbe4f0; */
 
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  /* background: linear-gradient(135deg, #2563eb, #1e40af); */
 
   word-break: break-word;
 }
@@ -281,10 +281,6 @@
   transition: none;
 }
 
-.report-table tbody tr:hover {
-  background: #f3f8ff;
-}
-
 .report-table tbody tr:nth-child(even) {
   background: #fafafa;
 }
@@ -303,7 +299,7 @@
 .report-table td:nth-child(1) {
   width: 70px;
 
-  color: #2563eb;
+  /* color: #2563eb; */
 
   font-weight: 700;
 }
@@ -319,10 +315,11 @@
 
 /* TUYẾN */
 
-.report-table th:nth-child(3),
-.report-table td:nth-child(3) {
+.report-table th:nth-child(3) {
   width: 320px;
+}
 
+.report-table td:nth-child(3) {
   text-align: left;
 }
 
@@ -337,30 +334,31 @@
 
 /* NỘI DUNG */
 
-.report-table th:nth-child(5),
-.report-table td:nth-child(5) {
+.report-table th:nth-child(5) {
   width: 700px;
-
+}
+.report-table td:nth-child(5) {
   text-align: left;
-
   line-height: 1.8;
 }
 
 /* NHÂN VIÊN */
 
-.report-table th:nth-child(6),
-.report-table td:nth-child(6) {
+.report-table th:nth-child(6) {
   width: 250px;
+}
 
+.report-table td:nth-child(6) {
   text-align: left;
 }
 
 /* KHÔNG VI PHẠM */
 
-.report-table th:nth-child(7),
-.report-table td:nth-child(7) {
+.report-table th:nth-child(7) {
   width: 120px;
+}
 
+.report-table td:nth-child(7) {
   color: #16a34a;
 
   font-weight: 700;
@@ -368,10 +366,11 @@
 
 /* VI PHẠM */
 
-.report-table th:nth-child(8),
-.report-table td:nth-child(8) {
+.report-table th:nth-child(8) {
   width: 120px;
+}
 
+.report-table td:nth-child(8) {
   color: #ef4444;
 
   font-weight: 700;
@@ -380,6 +379,12 @@
 /* =========================
    BUTTON
 ========================= */
+
+.report-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
 
 .copy-button {
   border: none;
