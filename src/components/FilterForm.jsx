@@ -71,7 +71,7 @@ export default function FilterForm({
           </Button>
         )}
 
-        {hasRequiredData && (
+        {results.length > 0 && (
           <Button
             className="report-button"
             onClick={() => setCurrentPage("report")}

@@ -19,19 +19,6 @@ export default function ResultTable({ results }) {
           </tr>
         </thead>
 
-        {/* <tbody>
-          {results.map((row, index) => (
-            <tr key={index}>
-              <td>{row["STT"]}</td>
-
-              <td>{formatDate(row["Ngày phản hồi"])}</td>
-
-              <td>{row["Tên nhân viên QLCL-DV"]}</td>
-
-              <td>{row["Nội dung tiếp nhận Phản ánh"]}</td>
-            </tr>
-          ))}
-        </tbody> */}
         <tbody>
           {results.map((item, index) => (
             <tr key={index}>

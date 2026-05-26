@@ -85,6 +85,22 @@ export default function ReportPage({ setCurrentPage }) {
   const extractBranch = (text) => {
     if (!text) return "";
 
+    // CASE MỚI:
+    // Có "1/ Nguồn tiếp nhận:"
+    // => lấy từ 2/ Chi nhánh/Đơn vị:
+
+    if (text.includes("1/ Nguồn tiếp nhận:")) {
+      const match = text.match(
+        // /2\/\s*Chi nhánh\/Đơn vị:\s*([\s\S]*?)(?=3\/|4\/|5\/|6\/|7\/|$)/i,
+        /2\/[\s\S]*?:\s*([\s\S]*?)(?=3\/|4\/|5\/|6\/|7\/|$)/i,
+      );
+
+      return match ? match[1].trim() : "";
+    }
+
+    // CASE CŨ
+    // lấy từ 1/ Chi nhánh/Đơn vị:
+
     const match = text.match(
       /1\/[\s\S]*?:\s*([\s\S]*?)(?=2\/|3\/|4\/|5\/|6\/|$)/i,
     );
@@ -99,11 +115,26 @@ export default function ReportPage({ setCurrentPage }) {
   const extractComplaintContent = (text) => {
     if (!text) return "";
 
+    // CASE MỚI:
+    // Có "1/ Nguồn tiếp nhận:"
+    // => lấy từ 6/ Nội dung tiếp nhận PA/KN:
+
+    if (text.includes("1/ Nguồn tiếp nhận:")) {
+      const match = text.match(
+        // /6\/\s*Nội dung tiếp nhận PA\/KN:\s*([\s\S]*?)(?=7\/|$)/i,
+        /6\/[\s\S]*?:\s*([\s\S]*?)(?=7\/|$)/i,
+      );
+
+      return match ? match[1].trim() : "";
+    }
+
+    // CASE CŨ
+    // lấy từ 5/
+
     const match = text.match(/5\/[\s\S]*?:\s*([\s\S]*?)(?=6\/|$)/i);
 
     return match ? match[1].trim() : "";
   };
-
   // =========================
   // BUILD REPORT DATA
   // =========================
@@ -195,70 +226,6 @@ export default function ReportPage({ setCurrentPage }) {
   // EXPORT EXCEL
   // =========================
 
-  // const handleExportExcel = () => {
-  //   if (reportData.length === 0) {
-  //     toast.error("Không có dữ liệu");
-
-  //     return;
-  //   }
-
-  //   const exportData = reportData.map((item) => ({
-  //     STT: item.stt,
-
-  //     "CHI NHÁNH": item.chiNhanh,
-
-  //     TUYẾN: item.tuyen,
-
-  //     BKS: item.bks,
-
-  //     "Nội dung phản ánh": item.noiDungPhanAnh,
-
-  //     "Nhân viên bị phản ánh": item.nhanVienBiPhanAnh,
-
-  //     "Không vi phạm": item.khongViPham,
-
-  //     "Vi phạm": item.viPham,
-  //   }));
-
-  //   const worksheet = XLSX.utils.json_to_sheet(exportData);
-
-  //   // WIDTH
-
-  //   worksheet["!cols"] = [
-  //     { wch: 8 },
-
-  //     { wch: 18 },
-
-  //     { wch: 35 },
-
-  //     { wch: 16 },
-
-  //     { wch: 80 },
-
-  //     { wch: 30 },
-
-  //     { wch: 18 },
-
-  //     { wch: 18 },
-  //   ];
-
-  //   const workbook = XLSX.utils.book_new();
-
-  //   XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCao");
-
-  //   const excelBuffer = XLSX.write(workbook, {
-  //     bookType: "xlsx",
-  //     type: "array",
-  //   });
-
-  //   const blob = new Blob([excelBuffer], {
-  //     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-  //   });
-
-  //   saveAs(blob, `BaoCao_${Date.now()}.xlsx`);
-
-  //   toast.success("Tải Excel thành công");
-  // };
   const handleExportExcel = () => {
     if (reportData.length === 0) {
       toast.error("Không có dữ liệu");
