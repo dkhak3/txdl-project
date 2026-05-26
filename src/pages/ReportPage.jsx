@@ -233,6 +233,10 @@ export default function ReportPage({ setCurrentPage }) {
       return;
     }
 
+    // =========================
+    // DATA
+    // =========================
+
     const exportData = reportData.map((item) => ({
       STT: item.stt,
 
@@ -242,158 +246,163 @@ export default function ReportPage({ setCurrentPage }) {
 
       BKS: item.bks,
 
-      "Nội dung phản ánh": item.noiDungPhanAnh,
+      "NỘI DUNG PHẢN ÁNH": item.noiDungPhanAnh,
 
-      "Nhân viên bị phản ánh": item.nhanVienBiPhanAnh,
+      "NHÂN VIÊN BỊ PHẢN ÁNH": item.nhanVienBiPhanAnh,
 
-      "Không vi phạm": item.khongViPham,
+      "KHÔNG VI PHẠM": item.khongViPham,
 
-      "Vi phạm": item.viPham,
+      "VI PHẠM": item.viPham,
     }));
 
-    // CREATE SHEET
+    // =========================
+    // SHEET
+    // =========================
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
 
-    // WIDTH
+    // =========================
+    // COLUMN WIDTH
+    // =========================
 
     worksheet["!cols"] = [
-      { wch: 8 },
+      { wch: 8 }, // STT
 
-      { wch: 18 },
+      { wch: 16 }, // CHI NHÁNH
 
-      { wch: 35 },
+      { wch: 35 }, // TUYẾN
 
-      { wch: 16 },
+      { wch: 16 }, // BKS
 
-      { wch: 80 },
+      { wch: 80 }, // NỘI DUNG
 
-      { wch: 30 },
+      { wch: 35 }, // NHÂN VIÊN
 
-      { wch: 18 },
+      { wch: 18 }, // KHÔNG VP
 
-      { wch: 18 },
+      { wch: 18 }, // VP
     ];
 
-    // HEADER STYLE
-
-    const headerStyle = {
-      font: {
-        bold: true,
-
-        color: {
-          rgb: "FFFFFF",
-        },
-
-        sz: 12,
-      },
-
-      fill: {
-        fgColor: {
-          rgb: "2563EB",
-        },
-      },
-
-      alignment: {
-        horizontal: "center",
-
-        vertical: "center",
-
-        wrapText: true,
-      },
-
-      border: {
-        top: {
-          style: "thin",
-        },
-
-        bottom: {
-          style: "thin",
-        },
-
-        left: {
-          style: "thin",
-        },
-
-        right: {
-          style: "thin",
-        },
-      },
-    };
-
-    // BODY STYLE
-
-    const bodyStyle = {
-      alignment: {
-        vertical: "top",
-
-        wrapText: true,
-      },
-
-      border: {
-        top: {
-          style: "thin",
-        },
-
-        bottom: {
-          style: "thin",
-        },
-
-        left: {
-          style: "thin",
-        },
-
-        right: {
-          style: "thin",
-        },
-      },
-    };
-
-    // APPLY STYLE
+    // =========================
+    // STYLE
+    // =========================
 
     const range = XLSX.utils.decode_range(worksheet["!ref"]);
 
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-      for (let C = range.s.c; C <= range.e.c; ++C) {
+    for (let row = range.s.r; row <= range.e.r; row++) {
+      for (let col = range.s.c; col <= range.e.c; col++) {
         const cellAddress = XLSX.utils.encode_cell({
-          r: R,
-
-          c: C,
+          r: row,
+          c: col,
         });
 
         if (!worksheet[cellAddress]) continue;
 
         // HEADER
 
-        if (R === 0) {
-          worksheet[cellAddress].s = headerStyle;
+        if (row === 0) {
+          worksheet[cellAddress].s = {
+            font: {
+              name: "Times New Roman",
+
+              sz: 12,
+
+              bold: true,
+
+              color: {
+                rgb: "FFFFFF",
+              },
+            },
+
+            fill: {
+              fgColor: {
+                rgb: "2563EB",
+              },
+            },
+
+            alignment: {
+              horizontal: "center",
+              vertical: "center",
+              wrapText: true,
+            },
+
+            border: {
+              top: {
+                style: "thin",
+              },
+
+              bottom: {
+                style: "thin",
+              },
+
+              left: {
+                style: "thin",
+              },
+
+              right: {
+                style: "thin",
+              },
+            },
+          };
         }
 
         // BODY
         else {
-          worksheet[cellAddress].s = bodyStyle;
+          worksheet[cellAddress].s = {
+            font: {
+              name: "Times New Roman",
+
+              sz: 12,
+            },
+
+            alignment: {
+              horizontal:
+                col === 2 || col === 4 || col === 5 ? "left" : "center",
+
+              vertical: "center",
+
+              wrapText: true,
+            },
+
+            border: {
+              top: {
+                style: "thin",
+              },
+
+              bottom: {
+                style: "thin",
+              },
+
+              left: {
+                style: "thin",
+              },
+
+              right: {
+                style: "thin",
+              },
+            },
+          };
         }
       }
     }
 
-    // ROW HEIGHT
-
-    worksheet["!rows"] = exportData.map(() => ({
-      hpt: 45,
-    }));
-
-    // CREATE WORKBOOK
+    // =========================
+    // WORKBOOK
+    // =========================
 
     const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCao");
 
+    // =========================
     // EXPORT
+    // =========================
 
     XLSX.writeFile(workbook, `BaoCao_${Date.now()}.xlsx`);
 
-    toast.success("Tải Excel thành công");
+    toast.success("Export Excel thành công");
   };
+
   // =========================
   // PAGINATION DATA
   // =========================

@@ -119,21 +119,49 @@
 }
 
 .report-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
   background: white;
 
   border-radius: 22px;
-
-  overflow: hidden;
 
   box-shadow:
     0 10px 30px rgba(0, 0, 0, 0.08),
     0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
+/* TABLE */
+
 .report-table {
   width: 100%;
 
+  min-width: 1700px;
+
   border-collapse: collapse;
+}
+
+.report-page {
+  width: 100%;
+
+  overflow-x: hidden;
+}
+
+.report-table td:nth-child(5),
+.report-table th:nth-child(5) {
+  min-width: 700px;
+
+  width: 700px;
+}
+
+.report-table thead th {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 10;
 }
 
 .report-table thead {
@@ -161,9 +189,9 @@
 
   font-size: 14px;
 
-  line-height: 1.6;
+  line-height: 1.7;
 
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .report-table tbody tr {
@@ -213,6 +241,15 @@
   text-align: center;
 }
 
+/* CĂN GIỮA TOÀN BỘ CELL */
+
+.report-table th,
+.report-table td {
+  text-align: center;
+
+  vertical-align: middle;
+}
+
 /* STT */
 
 .report-table th:nth-child(1),
@@ -226,11 +263,15 @@
 
 /* CHI NHÁNH */
 
-.report-table th:nth-child(2),
-.report-table td:nth-child(2) {
-  width: 220px;
+.report-table td:nth-child(2),
+.report-table th:nth-child(2) {
+  width: 140px;
 
-  min-width: 220px;
+  min-width: 140px;
+
+  max-width: 140px;
+
+  white-space: nowrap;
 }
 
 /* TUYẾN */
@@ -241,7 +282,7 @@
 
   min-width: 140px;
 
-  text-align: center;
+  text-align: left;
 }
 
 /* BKS */
@@ -266,6 +307,8 @@
   min-width: 700px;
 
   line-height: 1.8;
+
+  text-align: left;
 }
 
 /* NHÂN VIÊN */
@@ -275,6 +318,7 @@
   width: 220px;
 
   min-width: 220px;
+  text-align: left;
 }
 
 /* VI PHẠM */
