@@ -5,9 +5,7 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
-  background: #f5f7fb;
-  color: #1f2937;
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 .app-container {
@@ -21,8 +19,8 @@ body {
 }
 
 .app-header h1 {
-  font-size: 36px;
-  margin-bottom: 10px;
+  font-size: 32px;
+  font-weight: 700;
 }
 
 .app-header p {
@@ -394,11 +392,13 @@ tbody td:last-child {
   thead th {
     font-size: 13px;
     padding: 12px;
+    font-weight: 600;
   }
 
   tbody td {
     font-size: 13px;
     padding: 12px;
+    font-weight: 400;
   }
 
   tbody td:first-child {

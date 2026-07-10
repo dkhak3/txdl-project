@@ -1,11 +1,12 @@
-import { useState } from "react";
+// =========================
+// IMPORT
+// =========================
+
+import { useMemo, useState } from "react";
 
 import { useSelector } from "react-redux";
 
-// import * as XLSX from "xlsx";
 import * as XLSX from "xlsx-js-style";
-
-import { saveAs } from "file-saver";
 
 import toast from "react-hot-toast";
 
@@ -15,9 +16,15 @@ import "../styles/report.css";
 
 import { normalizeText } from "../utils/textUtils";
 
+import { exportReport } from "../utils/reportExporter";
+
+// =========================
+// COMPONENT
+// =========================
+
 export default function ReportPage({ setCurrentPage }) {
   // =========================
-  // REDUX DATA
+  // REDUX
   // =========================
 
   const results = useSelector((state) => state.excel.results);
@@ -47,59 +54,48 @@ export default function ReportPage({ setCurrentPage }) {
 
     const d = new Date(date);
 
-    const day = String(d.getDate()).padStart(2, "0");
-
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-
-    const year = d.getFullYear();
-
-    return `${day}/${month}/${year}`;
+    return `${String(d.getDate()).padStart(2, "0")}/${String(
+      d.getMonth() + 1,
+    ).padStart(2, "0")}/${d.getFullYear()}`;
   };
 
   // =========================
-  // COPY DATE
+  // COPY
   // =========================
 
-  const handleCopyDate = async () => {
-    const text = `Từ ngày ${formatDate(startDate)} đến ngày ${formatDate(endDate)}`;
-
+  const copyText = async (text, message) => {
     await navigator.clipboard.writeText(text);
 
-    toast.success("Đã copy thời gian");
+    toast.success(message);
   };
 
-  // =========================
-  // COPY EMPLOYEE
-  // =========================
+  const handleCopyDate = () =>
+    copyText(
+      `Từ ngày ${formatDate(startDate)} đến ngày ${formatDate(endDate)}`,
+      "Đã copy thời gian",
+    );
 
-  const handleCopyEmployees = async () => {
-    await navigator.clipboard.writeText(employeeInput);
-
-    toast.success("Đã copy danh sách nhân viên");
-  };
+  const handleCopyEmployees = () =>
+    copyText(employeeInput, "Đã copy danh sách nhân viên");
 
   // =========================
   // EXTRACT CHI NHÁNH
   // =========================
 
-  const extractBranch = (text) => {
+  const extractBranch = (text = "") => {
     if (!text) return "";
 
-    // CASE MỚI:
-    // Có "1/ Nguồn tiếp nhận:"
-    // => lấy từ 2/ Chi nhánh/Đơn vị:
+    // FORM MỚI
 
     if (text.includes("1/ Nguồn tiếp nhận:")) {
       const match = text.match(
-        // /2\/\s*Chi nhánh\/Đơn vị:\s*([\s\S]*?)(?=3\/|4\/|5\/|6\/|7\/|$)/i,
         /2\/[\s\S]*?:\s*([\s\S]*?)(?=3\/|4\/|5\/|6\/|7\/|$)/i,
       );
 
       return match ? match[1].trim() : "";
     }
 
-    // CASE CŨ
-    // lấy từ 1/ Chi nhánh/Đơn vị:
+    // FORM CŨ
 
     const match = text.match(
       /1\/[\s\S]*?:\s*([\s\S]*?)(?=2\/|3\/|4\/|5\/|6\/|$)/i,
@@ -112,152 +108,140 @@ export default function ReportPage({ setCurrentPage }) {
   // EXTRACT NỘI DUNG
   // =========================
 
-  const extractComplaintContent = (text) => {
+  const extractComplaintContent = (text = "") => {
     if (!text) return "";
 
-    // CASE MỚI:
-    // Có "1/ Nguồn tiếp nhận:"
-    // => lấy từ 6/ Nội dung tiếp nhận PA/KN:
+    // FORM MỚI
 
     if (text.includes("1/ Nguồn tiếp nhận:")) {
-      const match = text.match(
-        // /6\/\s*Nội dung tiếp nhận PA\/KN:\s*([\s\S]*?)(?=7\/|$)/i,
-        /6\/[\s\S]*?:\s*([\s\S]*?)(?=7\/|$)/i,
-      );
+      const match = text.match(/6\/[\s\S]*?:\s*([\s\S]*?)(?=7\/|$)/i);
 
       return match ? match[1].trim() : "";
     }
 
-    // CASE CŨ
-    // lấy từ 5/
+    // FORM CŨ
 
     const match = text.match(/5\/[\s\S]*?:\s*([\s\S]*?)(?=6\/|$)/i);
 
     return match ? match[1].trim() : "";
   };
+
+  // =========================
+  // BUILD SHEET2 MAP
+  // (Giúp tìm kiếm nhanh hơn)
+  // =========================
+
+  const sheet2Map = useMemo(() => {
+    const map = new Map();
+
+    secondSheetData.forEach((row) => {
+      const key = normalizeText(row[1]);
+
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+
+      map.get(key).push(row);
+    });
+
+    return map;
+  }, [secondSheetData]);
+
+  // =========================
+  // BUILD VIOLATION
+  // =========================
+
+  const buildViolation = (value) => {
+    const raw = String(value || "").trim();
+
+    const normalized = normalizeText(raw);
+
+    const isKhongViPham = normalized === "khong vi pham";
+
+    const isCoViPham = normalized === "co vi pham";
+
+    return {
+      khongViPham: isKhongViPham ? 1 : "",
+
+      viPham: isCoViPham ? 1 : !isKhongViPham ? raw : "",
+    };
+  };
+
   // =========================
   // BUILD REPORT DATA
   // =========================
 
-  const usedIndexes = new Set();
+  const reportData = useMemo(() => {
+    const usedIndexes = new Set();
 
-  const reportData = results.map((item, index) => {
-    // SHEET1
+    return results.map((item, index) => {
+      const stt = normalizeText(item["STT"]);
 
-    const employeeName = normalizeText(item["STT"]);
+      const rawContent = item["Nội dung tiếp nhận Phản ánh"] || "";
 
-    const rawContent = item["Nội dung tiếp nhận Phản ánh"] || "";
+      // =========================
+      // MATCH SHEET2
+      // =========================
 
-    // =========================
-    // MATCH SHEET2
-    // =========================
+      const rows = sheet2Map.get(stt) || [];
 
-    const matchedIndex = secondSheetData.findIndex((row, rowIndex) => {
-      // KHÔNG DÙNG LẠI DÒNG ĐÃ MATCH
+      let matchedRow = null;
 
-      if (usedIndexes.has(rowIndex)) {
-        return false;
+      for (let i = 0; i < rows.length; i++) {
+        if (!usedIndexes.has(rows[i])) {
+          matchedRow = rows[i];
+
+          usedIndexes.add(rows[i]);
+
+          break;
+        }
       }
 
-      const sheet2Employee = normalizeText(row[1]);
+      const violation = buildViolation(matchedRow?.[9]);
 
-      return sheet2Employee === employeeName;
+      return {
+        stt: index + 1,
+
+        chiNhanh: extractBranch(rawContent),
+
+        noiDungPhanAnh: extractComplaintContent(rawContent),
+
+        tuyen: matchedRow?.[4] || "",
+
+        nhanVienBiPhanAnh: matchedRow?.[5] || "",
+
+        bks: matchedRow?.[7] || "",
+
+        khongViPham: violation.khongViPham,
+
+        viPham: violation.viPham,
+      };
     });
-
-    // ĐÁNH DẤU ĐÃ DÙNG
-
-    if (matchedIndex !== -1) {
-      usedIndexes.add(matchedIndex);
-    }
-
-    const matchedRow = secondSheetData[matchedIndex];
-
-    // =========================
-    // VI PHẠM
-    // =========================
-
-    const violationRaw = String(matchedRow?.[9] || "").trim();
-
-    const normalizedViolation = normalizeText(violationRaw);
-
-    // KHÔNG VI PHẠM
-
-    const isKhongViPham = normalizedViolation === "khong vi pham";
-
-    // CÓ VI PHẠM
-
-    const isCoViPham = normalizedViolation === "co vi pham";
-
-    // TEXT KHÁC
-
-    const otherViolationText =
-      !isKhongViPham && !isCoViPham ? violationRaw : "";
-
-    return {
-      // STT WEB
-
-      stt: index + 1,
-
-      // SHEET1
-
-      chiNhanh: extractBranch(rawContent),
-
-      noiDungPhanAnh: extractComplaintContent(rawContent),
-
-      // SHEET2
-
-      tuyen: matchedRow?.[4] || "",
-
-      nhanVienBiPhanAnh: matchedRow?.[5] || "",
-
-      bks: matchedRow?.[7] || "",
-
-      // KHÔNG VI PHẠM
-
-      khongViPham: isKhongViPham ? 1 : "",
-
-      // VI PHẠM
-
-      viPham: isCoViPham ? 1 : otherViolationText,
-    };
-  });
+  }, [results, sheet2Map]);
 
   // =========================
   // EXPORT EXCEL
   // =========================
 
   const handleExportExcel = () => {
-    if (reportData.length === 0) {
+    if (!reportData.length) {
       toast.error("Không có dữ liệu");
 
       return;
     }
 
-    // =========================
-    // DATA
-    // =========================
+    // DATA EXPORT
 
     const exportData = reportData.map((item) => ({
       STT: item.stt,
-
       "CHI NHÁNH": item.chiNhanh,
-
       TUYẾN: item.tuyen,
-
       BKS: item.bks,
-
       "NỘI DUNG PHẢN ÁNH": item.noiDungPhanAnh,
-
       "NHÂN VIÊN BỊ PHẢN ÁNH": item.nhanVienBiPhanAnh,
-
       "KHÔNG VI PHẠM": item.khongViPham,
-
       "VI PHẠM": item.viPham,
     }));
-
-    // =========================
-    // SHEET
-    // =========================
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
 
@@ -266,21 +250,14 @@ export default function ReportPage({ setCurrentPage }) {
     // =========================
 
     worksheet["!cols"] = [
-      { wch: 8 }, // STT
-
-      { wch: 16 }, // CHI NHÁNH
-
-      { wch: 35 }, // TUYẾN
-
-      { wch: 16 }, // BKS
-
-      { wch: 80 }, // NỘI DUNG
-
-      { wch: 35 }, // NHÂN VIÊN
-
-      { wch: 18 }, // KHÔNG VP
-
-      { wch: 18 }, // VP
+      { wch: 8 },
+      { wch: 16 },
+      { wch: 35 },
+      { wch: 16 },
+      { wch: 80 },
+      { wch: 35 },
+      { wch: 18 },
+      { wch: 18 },
     ];
 
     // =========================
@@ -291,112 +268,61 @@ export default function ReportPage({ setCurrentPage }) {
 
     for (let row = range.s.r; row <= range.e.r; row++) {
       for (let col = range.s.c; col <= range.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({
+        const address = XLSX.utils.encode_cell({
           r: row,
           c: col,
         });
 
-        if (!worksheet[cellAddress]) continue;
+        if (!worksheet[address]) continue;
 
-        // HEADER
+        worksheet[address].s = {
+          font: {
+            name: "Times New Roman",
+            sz: 12,
+            bold: row === 0,
+            color:
+              row === 0
+                ? {
+                    rgb: "FFFFFF",
+                  }
+                : undefined,
+          },
 
-        if (row === 0) {
-          worksheet[cellAddress].s = {
-            font: {
-              name: "Times New Roman",
+          fill:
+            row === 0
+              ? {
+                  fgColor: {
+                    rgb: "2563EB",
+                  },
+                }
+              : undefined,
 
-              sz: 12,
+          alignment: {
+            horizontal:
+              row === 0
+                ? "center"
+                : col === 2 || col === 4 || col === 5
+                  ? "left"
+                  : "center",
 
-              bold: true,
+            vertical: "center",
 
-              color: {
-                rgb: "FFFFFF",
-              },
-            },
+            wrapText: true,
+          },
 
-            fill: {
-              fgColor: {
-                rgb: "2563EB",
-              },
-            },
-
-            alignment: {
-              horizontal: "center",
-              vertical: "center",
-              wrapText: true,
-            },
-
-            border: {
-              top: {
-                style: "thin",
-              },
-
-              bottom: {
-                style: "thin",
-              },
-
-              left: {
-                style: "thin",
-              },
-
-              right: {
-                style: "thin",
-              },
-            },
-          };
-        }
-
-        // BODY
-        else {
-          worksheet[cellAddress].s = {
-            font: {
-              name: "Times New Roman",
-
-              sz: 12,
-            },
-
-            alignment: {
-              horizontal:
-                col === 2 || col === 4 || col === 5 ? "left" : "center",
-
-              vertical: "center",
-
-              wrapText: true,
-            },
-
-            border: {
-              top: {
-                style: "thin",
-              },
-
-              bottom: {
-                style: "thin",
-              },
-
-              left: {
-                style: "thin",
-              },
-
-              right: {
-                style: "thin",
-              },
-            },
-          };
-        }
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        };
       }
     }
-
-    // =========================
-    // WORKBOOK
-    // =========================
 
     const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCao");
-
-    // =========================
-    // EXPORT
-    // =========================
 
     XLSX.writeFile(workbook, `BaoCao_${Date.now()}.xlsx`);
 
@@ -404,16 +330,20 @@ export default function ReportPage({ setCurrentPage }) {
   };
 
   // =========================
-  // PAGINATION DATA
+  // PAGINATION
   // =========================
 
-  const indexOfLastRow = currentPage * rowsPerPage;
-
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-
-  const currentRows = reportData.slice(indexOfFirstRow, indexOfLastRow);
-
   const totalPages = Math.ceil(reportData.length / rowsPerPage);
+
+  const currentRows = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+
+    return reportData.slice(start, start + rowsPerPage);
+  }, [reportData, currentPage, rowsPerPage]);
+
+  // =========================
+  // RENDER
+  // =========================
 
   return (
     <div className="report-page">
@@ -424,8 +354,6 @@ export default function ReportPage({ setCurrentPage }) {
       <div className="report-header">
         <div>
           <h1>Báo cáo hỗ trợ trích xuất</h1>
-
-          {/* ACTIONS */}
 
           <div className="report-actions">
             {/* BACK */}
@@ -439,16 +367,24 @@ export default function ReportPage({ setCurrentPage }) {
 
             {/* EXPORT */}
 
-            <Button className="export-button" onClick={handleExportExcel}>
+            <Button
+              className="export-button"
+              onClick={() =>
+                exportReport(
+                  reportData,
+                  formatDate(startDate),
+                  formatDate(endDate),
+                  employeeInput,
+                )
+              }
+            >
               ⬇ Tải Excel
             </Button>
           </div>
         </div>
 
-        {/* TOTAL */}
-
         <p>
-          Tổng số phản ánh:
+          Tổng số phản ánh
           <span>{reportData.length}</span>
         </p>
       </div>
@@ -514,33 +450,56 @@ export default function ReportPage({ setCurrentPage }) {
               <th>Vi phạm</th>
             </tr>
           </thead>
-
           <tbody>
-            {currentRows.map((item, index) => (
-              <tr key={index}>
-                <td>{item.stt}</td>
+            {currentRows.length > 0 ? (
+              currentRows.map((item) => (
+                <tr key={item.stt}>
+                  {/* STT */}
+                  <td>{item.stt}</td>
 
-                <td>{item.chiNhanh}</td>
+                  {/* CHI NHÁNH */}
+                  <td>{item.chiNhanh}</td>
 
-                <td>{item.tuyen}</td>
+                  {/* TUYẾN */}
+                  <td>{item.tuyen}</td>
 
-                <td>{item.bks}</td>
+                  {/* BKS */}
+                  <td>{item.bks}</td>
 
-                <td>{item.noiDungPhanAnh}</td>
+                  {/* NỘI DUNG */}
+                  <td>{item.noiDungPhanAnh}</td>
 
-                <td>{item.nhanVienBiPhanAnh}</td>
+                  {/* NHÂN VIÊN */}
+                  <td>{item.nhanVienBiPhanAnh}</td>
 
-                <td>{item.khongViPham}</td>
+                  {/* KHÔNG VI PHẠM */}
+                  <td>{item.khongViPham}</td>
 
-                <td>{item.viPham}</td>
+                  {/* VI PHẠM */}
+                  <td>{item.viPham}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={8}
+                  style={{
+                    textAlign: "center",
+                    padding: "40px",
+                    color: "#6b7280",
+                    fontStyle: "italic",
+                  }}
+                >
+                  Không có dữ liệu
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
 
-        {/* ========================= */}
-        {/* PAGINATION */}
-        {/* ========================= */}
+        {/* =========================
+            PAGINATION
+        ========================= */}
 
         {reportData.length > 0 && (
           <div className="pagination">
@@ -553,39 +512,66 @@ export default function ReportPage({ setCurrentPage }) {
                 value={rowsPerPage}
                 onChange={(e) => {
                   setRowsPerPage(Number(e.target.value));
-
                   setPage(1);
                 }}
               >
-                <option value={20}>20</option>
-
-                <option value={50}>50</option>
-
-                <option value={100}>100</option>
+                {[20, 50, 100].map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
               </select>
 
               <span>dòng</span>
             </div>
 
+            {/* CENTER */}
+
+            <div
+              style={{
+                color: "#6b7280",
+                fontWeight: 600,
+              }}
+            >
+              Trang {currentPage} / {totalPages}
+            </div>
+
             {/* RIGHT */}
 
             <div className="pagination-pages">
-              {Array.from(
-                {
-                  length: totalPages,
-                },
-                (_, i) => i + 1,
-              ).map((page) => (
-                <button
-                  key={page}
-                  className={
-                    currentPage === page ? "page-btn active" : "page-btn"
-                  }
-                  onClick={() => setPage(page)}
-                >
-                  {page}
-                </button>
-              ))}
+              {/* PREV */}
+
+              <button
+                className="page-btn"
+                disabled={currentPage === 1}
+                onClick={() => setPage((prev) => prev - 1)}
+              >
+                ←
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    className={
+                      currentPage === page ? "page-btn active" : "page-btn"
+                    }
+                    onClick={() => setPage(page)}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
+
+              {/* NEXT */}
+
+              <button
+                className="page-btn"
+                disabled={currentPage === totalPages}
+                onClick={() => setPage((prev) => prev + 1)}
+              >
+                →
+              </button>
             </div>
           </div>
         )}
