@@ -32,6 +32,6 @@ coverage/
 tmp/
 temp/
 
-# excel test files (optional)
-*.xlsx
-*.xls
+# # excel test files (optional)
+# *.xlsx
+# *.xls
