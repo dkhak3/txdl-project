@@ -112,16 +112,16 @@ export default function ReportPage({ setCurrentPage }) {
     if (!text) return "";
 
     // FORM MỚI
-
     if (text.includes("1/ Nguồn tiếp nhận:")) {
-      const match = text.match(/6\/[\s\S]*?:\s*([\s\S]*?)(?=7\/|$)/i);
+      const match = text.match(
+        /6\/[\s\S]*?:\s*([\s\S]*?)(?=\s*7\/[\s\S]*?:|$)/i,
+      );
 
       return match ? match[1].trim() : "";
     }
 
     // FORM CŨ
-
-    const match = text.match(/5\/[\s\S]*?:\s*([\s\S]*?)(?=6\/|$)/i);
+    const match = text.match(/5\/[\s\S]*?:\s*([\s\S]*?)(?=\s*6\/[\s\S]*?:|$)/i);
 
     return match ? match[1].trim() : "";
   };
@@ -153,6 +153,7 @@ export default function ReportPage({ setCurrentPage }) {
 
   const buildViolation = (value) => {
     const raw = String(value || "").trim();
+    console.log("raw", raw);
 
     const normalized = normalizeText(raw);
 
@@ -160,10 +161,17 @@ export default function ReportPage({ setCurrentPage }) {
 
     const isCoViPham = normalized === "co vi pham";
 
-    return {
-      khongViPham: isKhongViPham ? 1 : "",
+    // các text thuộc Không vi phạm
+    const isTextKhongViPham = !isKhongViPham && !isCoViPham && raw !== "";
 
-      viPham: isCoViPham ? 1 : !isKhongViPham ? raw : "",
+    return {
+      // KHÔNG VI PHẠM
+
+      khongViPham: isKhongViPham ? 1 : isTextKhongViPham ? raw : "",
+
+      // VI PHẠM
+
+      viPham: isCoViPham ? 1 : "",
     };
   };
 
@@ -378,7 +386,7 @@ export default function ReportPage({ setCurrentPage }) {
                 )
               }
             >
-              ⬇ Tải Excel
+              ⬇ Xuất báo cáo Excel
             </Button>
           </div>
         </div>
@@ -472,11 +480,18 @@ export default function ReportPage({ setCurrentPage }) {
                   {/* NHÂN VIÊN */}
                   <td>{item.nhanVienBiPhanAnh}</td>
 
-                  {/* KHÔNG VI PHẠM */}
-                  <td>{item.khongViPham}</td>
+                  {/* HỖ TRỢ KHÁCH HÀNG */}
+                  {item.khongViPham && Number(item.khongViPham) !== 1 ? (
+                    <td colSpan={2} className="support-customer">
+                      {item.khongViPham}
+                    </td>
+                  ) : (
+                    <>
+                      <td>{item.khongViPham}</td>
 
-                  {/* VI PHẠM */}
-                  <td>{item.viPham}</td>
+                      <td>{item.viPham}</td>
+                    </>
+                  )}
                 </tr>
               ))
             ) : (

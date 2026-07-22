@@ -49,8 +49,33 @@ export async function exportReport(
 
     sheet.getCell("A4").value = `Họ & Tên: ${employeeInput}`;
 
-    sheet.getCell("E2").value = `BÁO CÁO CÔNG VIỆC BỘ PHẬN QUẢN LÝ CLDV CITYBUS
-    (Từ ngày ${startDate} đến ngày ${endDate})`;
+    sheet.getCell("E2").value = {
+      richText: [
+        {
+          text: "BÁO CÁO CÔNG VIỆC BỘ PHẬN QUẢN LÝ CLDV CITYBUS\n",
+          font: {
+            name: "Times New Roman",
+            bold: true,
+            size: 16,
+          },
+        },
+        {
+          text: `(Từ ngày ${startDate} đến ngày ${endDate})`,
+          font: {
+            name: "Times New Roman",
+            bold: true,
+            italic: true,
+            size: 13,
+          },
+        },
+      ],
+    };
+
+    sheet.getCell("E2").alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true,
+    };
 
     // =========================
     // TEMPLATE
@@ -77,6 +102,8 @@ export async function exportReport(
     reportData.forEach((item, index) => {
       const row = sheet.getRow(startRow + index);
 
+      const rowNumber = startRow + index;
+
       row.height = templateRow.height;
 
       row.getCell(1).value = item.stt;
@@ -87,6 +114,73 @@ export async function exportReport(
       row.getCell(6).value = item.nhanVienBiPhanAnh;
       row.getCell(7).value = item.khongViPham || "";
       row.getCell(8).value = item.viPham || "";
+
+      //=========================
+      // RESET FONT TOÀN BỘ DÒNG
+      //=========================
+
+      for (let i = 1; i <= 8; i++) {
+        row.getCell(i).font = {
+          name: "Times New Roman",
+          size: 12,
+          bold: false,
+          color: {
+            argb: "FF000000",
+          },
+        };
+      }
+
+      //=========================
+      // CĂN LỀ
+      //=========================
+
+      for (let i = 1; i <= 8; i++) {
+        row.getCell(i).alignment = {
+          vertical: "middle",
+          wrapText: true,
+          horizontal: i === 3 || i === 5 || i === 6 ? "left" : "center",
+        };
+      }
+
+      //=========================
+      // HỖ TRỢ KHÁCH HÀNG
+      //=========================
+
+      const khongVPText = String(item.khongViPham || "").trim();
+
+      if (khongVPText && Number(khongVPText) !== 1) {
+        row.getCell(7).value = khongVPText;
+
+        row.getCell(7).value = {
+          richText: [
+            {
+              text: khongVPText,
+
+              font: {
+                name: "Times New Roman",
+
+                size: 12,
+
+                bold: true,
+
+                color: {
+                  argb: "FFFF0000",
+                },
+              },
+            },
+          ],
+        };
+        row.getCell(7).alignment = {
+          horizontal: "center",
+
+          vertical: "middle",
+
+          wrapText: true,
+        };
+
+        // merge ô
+        sheet.mergeCells(`G${rowNumber}:H${rowNumber}`);
+      }
 
       row.commit();
     });
@@ -103,10 +197,56 @@ export async function exportReport(
 
     const coVP = reportData.filter((x) => Number(x.viPham) === 1).length;
 
+    // lấy dòng tổng
     const totalRow = sheet.getRow(totalRowIndex);
+    // merge A -> F
+    sheet.mergeCells(`A${totalRowIndex}:F${totalRowIndex}`);
+    // ghi dữ liệu
+    totalRow.getCell(1).value = "TỔNG";
 
     totalRow.getCell(7).value = khongVP;
     totalRow.getCell(8).value = coVP;
+
+    // style
+    for (let i = 1; i <= 8; i++) {
+      totalRow.getCell(i).font = {
+        name: "Times New Roman",
+
+        size: 12,
+
+        color: { argb: "FF0000" },
+
+        bold: true,
+      };
+
+      totalRow.getCell(i).alignment = {
+        horizontal: "center",
+
+        vertical: "middle",
+
+        wrapText: true,
+      };
+
+      totalRow.getCell(i).border = {
+        top: {
+          style: "thin",
+        },
+
+        bottom: {
+          style: "thin",
+        },
+
+        left: {
+          style: "thin",
+        },
+
+        right: {
+          style: "thin",
+        },
+      };
+    }
+
+    totalRow.height = 24;
 
     totalRow.commit();
 
@@ -120,7 +260,8 @@ export async function exportReport(
       new Blob([excelBuffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       }),
-      `BaoCao_${Date.now()}.xlsx`,
+      // `BaoCao_${Date.now()}.xlsx`,
+      "CITYBUS - BÁO CÁO HỖ TRỢ TRÍCH XUẤT DỮ LIỆU BP.QLCL-DV.xlsx",
     );
   } catch (err) {
     console.error(err);

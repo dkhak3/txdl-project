@@ -409,3 +409,13 @@ tbody td:last-child {
     min-width: 280px;
   }
 }
+
+.support-customer {
+  color: red !important;
+
+  font-weight: bold;
+
+  text-align: center;
+
+  vertical-align: middle;
+}
