@@ -1,18 +1,26 @@
-import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 
-import ExcelFilter from "./components/ExcelFilter";
-
+import HomePage from "./pages/HomePage";
 import ReportPage from "./pages/ReportPage";
 
-import "./styles/app.css";
+import "./index.css";
+import NoDataPage from "./pages/NoDataPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import RemovedReportPage from "./pages/RemovedReportPage";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("home");
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
 
-  return currentPage === "home" ? (
-    <ExcelFilter setCurrentPage={setCurrentPage} />
-  ) : (
-    <ReportPage setCurrentPage={setCurrentPage} />
+      <Route path="/report" element={<ReportPage />} />
+
+      <Route path="/report/removed" element={<RemovedReportPage />} />
+
+      <Route path="/no-data" element={<NoDataPage />} />
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }
 

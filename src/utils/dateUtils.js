@@ -1,45 +1,42 @@
-import * as XLSX from "xlsx";
+export function normalizeDate(value) {
+  if (!value) return "";
 
-export const parseDate = (value) => {
-  if (!value) return null;
-
-  if (value instanceof Date) {
+  // Đã đúng định dạng dd/MM/yyyy
+  if (typeof value === "string" && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
     return value;
   }
 
-  if (!isNaN(value)) {
-    const excelDate = XLSX.SSF.parse_date_code(value);
+  // Date object
+  if (value instanceof Date) {
+    const day = String(value.getDate()).padStart(2, "0");
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const year = value.getFullYear();
 
-    if (!excelDate) return null;
-
-    return new Date(excelDate.y, excelDate.m - 1, excelDate.d);
+    return `${day}/${month}/${year}`;
   }
 
-  const str = value.toString().trim();
+  // String có thể parse
+  const date = new Date(value);
 
-  if (str.includes("/")) {
-    const onlyDate = str.split(" ")[0];
+  if (!isNaN(date.getTime())) {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
 
-    const parts = onlyDate.split("/");
-
-    if (parts.length !== 3) return null;
-
-    return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+    return `${day}/${month}/${year}`;
   }
 
-  return new Date(str);
-};
+  return String(value).trim();
+}
 
-export const formatDate = (value) => {
-  const date = parseDate(value);
+export function parseDate(dateString) {
+  if (!dateString) return null;
 
-  if (!date) return "";
+  const [day, month, year] = dateString.split("/");
 
-  const day = String(date.getDate()).padStart(2, "0");
+  if (!day || !month || !year) {
+    return null;
+  }
 
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;
-};
+  return new Date(year, month - 1, day).getTime();
+}

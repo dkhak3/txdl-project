@@ -1,596 +1,170 @@
-// =========================
-// IMPORT
-// =========================
+import { useEffect, useRef } from "react";
 
-import { useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
-import { useSelector } from "react-redux";
+import Layout from "../components/layout/Layout";
 
-import * as XLSX from "xlsx-js-style";
+import ReportHero from "../components/dashboard/ReportHero";
+import ReportStatisticGrid from "../components/dashboard/ReportStatisticGrid";
 
-import toast from "react-hot-toast";
+import ReportTable from "../components/report/ReportTable";
 
-import Button from "../components/Button";
+import useFilter from "../hooks/useFilter";
+import useReportSearch from "../hooks/useReportSearch";
 
-import "../styles/report.css";
+import {
+  selectCurrentPage,
+  selectCurrentPageData,
+  selectPageSize,
+  selectResult,
+  //   selectResultData,
+  selectResultTotal,
+  selectTotalPages,
+  setCurrentPage,
+  setPageSize,
+} from "../redux/reportResultSlice";
 
-import { normalizeText } from "../utils/textUtils";
+import { selectResultData as selectHomeResultData } from "../redux/homeResultSlice";
 
-import { exportReport } from "../utils/reportExporter";
+function ReportPage() {
+  const dispatch = useDispatch();
 
-// =========================
-// COMPONENT
-// =========================
+  /* ============================
+      FILTER
+  ============================ */
 
-export default function ReportPage({ setCurrentPage }) {
-  // =========================
-  // REDUX
-  // =========================
+  const {
+    startDate,
+    endDate,
 
-  const results = useSelector((state) => state.excel.results);
+    handleStartDateChange,
+    handleEndDateChange,
+  } = useFilter();
 
-  const secondSheetData = useSelector((state) => state.excel.secondSheetData);
+  /* ============================
+      SEARCH
+  ============================ */
 
-  const startDate = useSelector((state) => state.excel.startDate);
+  const { handleSearch } = useReportSearch();
 
-  const endDate = useSelector((state) => state.excel.endDate);
+  /* ============================
+      RESULT
+  ============================ */
 
-  const employeeInput = useSelector((state) => state.excel.employeeInput);
+  const report = useSelector(selectResult);
 
-  // =========================
-  // PAGINATION
-  // =========================
+  const data = useSelector(selectCurrentPageData);
 
-  const [currentPage, setPage] = useState(1);
+  const total = useSelector(selectResultTotal);
 
-  const [rowsPerPage, setRowsPerPage] = useState(20);
+  const currentPage = useSelector(selectCurrentPage);
 
-  // =========================
-  // FORMAT DATE
-  // =========================
+  const totalPages = useSelector(selectTotalPages);
+
+  const pageSize = useSelector(selectPageSize);
+
+  /* ============================
+      EVENTS
+  ============================ */
+
+  const handlePage = (page) => {
+    dispatch(setCurrentPage(page));
+  };
+
+  const handlePageSize = (size) => {
+    dispatch(setPageSize(size));
+  };
+
+  const handleExport = () => {};
+
+  const navigate = useNavigate();
+  const handleBack = () => {
+    navigate("/");
+  };
+
+  /* ============================
+      CHECK DATA
+  ============================ */
+  const hasBuilt = useRef(false);
+
+  const homeData = useSelector(selectHomeResultData);
+
+  useEffect(() => {
+    if (hasBuilt.current) return;
+
+    if (homeData.length === 0) return;
+
+    hasBuilt.current = true;
+
+    handleSearch({
+      startDate,
+      endDate,
+    });
+  }, [homeData.length]);
+
+  console.log("report", report);
+
+  if (!homeData.length) {
+    return <Navigate to="/no-data" replace />;
+  }
 
   const formatDate = (date) => {
     if (!date) return "";
 
-    const d = new Date(date);
-
-    return `${String(d.getDate()).padStart(2, "0")}/${String(
-      d.getMonth() + 1,
-    ).padStart(2, "0")}/${d.getFullYear()}`;
+    const [year, month, day] = date.split("-");
+    return `${day}/${month}/${year}`;
   };
-
-  // =========================
-  // COPY
-  // =========================
-
-  const copyText = async (text, message) => {
-    await navigator.clipboard.writeText(text);
-
-    toast.success(message);
-  };
-
-  const handleCopyDate = () =>
-    copyText(
-      `Từ ngày ${formatDate(startDate)} đến ngày ${formatDate(endDate)}`,
-      "Đã copy thời gian",
-    );
-
-  const handleCopyEmployees = () =>
-    copyText(employeeInput, "Đã copy danh sách nhân viên");
-
-  // =========================
-  // EXTRACT CHI NHÁNH
-  // =========================
-
-  const extractBranch = (text = "") => {
-    if (!text) return "";
-
-    // FORM MỚI
-
-    if (text.includes("1/ Nguồn tiếp nhận:")) {
-      const match = text.match(
-        /2\/[\s\S]*?:\s*([\s\S]*?)(?=3\/|4\/|5\/|6\/|7\/|$)/i,
-      );
-
-      return match ? match[1].trim() : "";
-    }
-
-    // FORM CŨ
-
-    const match = text.match(
-      /1\/[\s\S]*?:\s*([\s\S]*?)(?=2\/|3\/|4\/|5\/|6\/|$)/i,
-    );
-
-    return match ? match[1].trim() : "";
-  };
-
-  // =========================
-  // EXTRACT NỘI DUNG
-  // =========================
-
-  const extractComplaintContent = (text = "") => {
-    if (!text) return "";
-
-    // FORM MỚI
-    if (text.includes("1/ Nguồn tiếp nhận:")) {
-      const match = text.match(
-        /6\/[\s\S]*?:\s*([\s\S]*?)(?=\s*7\/[\s\S]*?:|$)/i,
-      );
-
-      return match ? match[1].trim() : "";
-    }
-
-    // FORM CŨ
-    const match = text.match(/5\/[\s\S]*?:\s*([\s\S]*?)(?=\s*6\/[\s\S]*?:|$)/i);
-
-    return match ? match[1].trim() : "";
-  };
-
-  // =========================
-  // BUILD SHEET2 MAP
-  // (Giúp tìm kiếm nhanh hơn)
-  // =========================
-
-  const sheet2Map = useMemo(() => {
-    const map = new Map();
-
-    secondSheetData.forEach((row) => {
-      const key = normalizeText(row[1]);
-
-      if (!map.has(key)) {
-        map.set(key, []);
-      }
-
-      map.get(key).push(row);
-    });
-
-    return map;
-  }, [secondSheetData]);
-
-  // =========================
-  // BUILD VIOLATION
-  // =========================
-
-  const buildViolation = (value) => {
-    const raw = String(value || "").trim();
-    console.log("raw", raw);
-
-    const normalized = normalizeText(raw);
-
-    const isKhongViPham = normalized === "khong vi pham";
-
-    const isCoViPham = normalized === "co vi pham";
-
-    // các text thuộc Không vi phạm
-    const isTextKhongViPham = !isKhongViPham && !isCoViPham && raw !== "";
-
-    return {
-      // KHÔNG VI PHẠM
-
-      khongViPham: isKhongViPham ? 1 : isTextKhongViPham ? raw : "",
-
-      // VI PHẠM
-
-      viPham: isCoViPham ? 1 : "",
-    };
-  };
-
-  // =========================
-  // BUILD REPORT DATA
-  // =========================
-
-  const reportData = useMemo(() => {
-    const usedIndexes = new Set();
-
-    return results.map((item, index) => {
-      const stt = normalizeText(item["STT"]);
-
-      const rawContent = item["Nội dung tiếp nhận Phản ánh"] || "";
-
-      // =========================
-      // MATCH SHEET2
-      // =========================
-
-      const rows = sheet2Map.get(stt) || [];
-
-      let matchedRow = null;
-
-      for (let i = 0; i < rows.length; i++) {
-        if (!usedIndexes.has(rows[i])) {
-          matchedRow = rows[i];
-
-          usedIndexes.add(rows[i]);
-
-          break;
-        }
-      }
-
-      const violation = buildViolation(matchedRow?.[9]);
-
-      return {
-        stt: index + 1,
-
-        chiNhanh: extractBranch(rawContent),
-
-        noiDungPhanAnh: extractComplaintContent(rawContent),
-
-        tuyen: matchedRow?.[4] || "",
-
-        nhanVienBiPhanAnh: matchedRow?.[5] || "",
-
-        bks: matchedRow?.[7] || "",
-
-        khongViPham: violation.khongViPham,
-
-        viPham: violation.viPham,
-      };
-    });
-  }, [results, sheet2Map]);
-
-  // =========================
-  // EXPORT EXCEL
-  // =========================
-
-  const handleExportExcel = () => {
-    if (!reportData.length) {
-      toast.error("Không có dữ liệu");
-
-      return;
-    }
-
-    // DATA EXPORT
-
-    const exportData = reportData.map((item) => ({
-      STT: item.stt,
-      "CHI NHÁNH": item.chiNhanh,
-      TUYẾN: item.tuyen,
-      BKS: item.bks,
-      "NỘI DUNG PHẢN ÁNH": item.noiDungPhanAnh,
-      "NHÂN VIÊN BỊ PHẢN ÁNH": item.nhanVienBiPhanAnh,
-      "KHÔNG VI PHẠM": item.khongViPham,
-      "VI PHẠM": item.viPham,
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-
-    // =========================
-    // COLUMN WIDTH
-    // =========================
-
-    worksheet["!cols"] = [
-      { wch: 8 },
-      { wch: 16 },
-      { wch: 35 },
-      { wch: 16 },
-      { wch: 80 },
-      { wch: 35 },
-      { wch: 18 },
-      { wch: 18 },
-    ];
-
-    // =========================
-    // STYLE
-    // =========================
-
-    const range = XLSX.utils.decode_range(worksheet["!ref"]);
-
-    for (let row = range.s.r; row <= range.e.r; row++) {
-      for (let col = range.s.c; col <= range.e.c; col++) {
-        const address = XLSX.utils.encode_cell({
-          r: row,
-          c: col,
-        });
-
-        if (!worksheet[address]) continue;
-
-        worksheet[address].s = {
-          font: {
-            name: "Times New Roman",
-            sz: 12,
-            bold: row === 0,
-            color:
-              row === 0
-                ? {
-                    rgb: "FFFFFF",
-                  }
-                : undefined,
-          },
-
-          fill:
-            row === 0
-              ? {
-                  fgColor: {
-                    rgb: "2563EB",
-                  },
-                }
-              : undefined,
-
-          alignment: {
-            horizontal:
-              row === 0
-                ? "center"
-                : col === 2 || col === 4 || col === 5
-                  ? "left"
-                  : "center",
-
-            vertical: "center",
-
-            wrapText: true,
-          },
-
-          border: {
-            top: { style: "thin" },
-            bottom: { style: "thin" },
-            left: { style: "thin" },
-            right: { style: "thin" },
-          },
-        };
-      }
-    }
-
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCao");
-
-    XLSX.writeFile(workbook, `BaoCao_${Date.now()}.xlsx`);
-
-    toast.success("Export Excel thành công");
-  };
-
-  // =========================
-  // PAGINATION
-  // =========================
-
-  const totalPages = Math.ceil(reportData.length / rowsPerPage);
-
-  const currentRows = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-
-    return reportData.slice(start, start + rowsPerPage);
-  }, [reportData, currentPage, rowsPerPage]);
-
-  // =========================
-  // RENDER
-  // =========================
 
   return (
-    <div className="report-page">
-      {/* ========================= */}
-      {/* HEADER */}
-      {/* ========================= */}
+    <Layout>
+      <ReportHero
+        startDate={formatDate(startDate)}
+        endDate={formatDate(endDate)}
+        total={report.totalMatched || 0}
+      />
 
-      <div className="report-header">
-        <div>
-          <h1>Báo cáo hỗ trợ trích xuất</h1>
+      <ReportStatisticGrid
+        total={report.totalMatched || 0}
+        khongViPham={report.totalKhongViPham || 0}
+        viPham={report.totalViPham || 0}
+        hoTroKhachHang={report.totalHoTroKhachHang}
+      />
+      {report.totalRemoved > 0 && (
+        <Link
+          to="/report/removed"
+          className="
+    inline-flex
+    items-center
+    rounded-xl
+    border
+    border-red-300
+    bg-red-50
+    px-4
+    py-2
+    font-semibold
+    text-red-600
+    hover:bg-red-100
+    transition
+  "
+        >
+          🔍 Xem {report.totalRemoved} phản ánh bị loại
+        </Link>
+      )}
 
-          <div className="report-actions">
-            {/* BACK */}
-
-            <Button
-              className="back-button"
-              onClick={() => setCurrentPage("home")}
-            >
-              ← Quay lại
-            </Button>
-
-            {/* EXPORT */}
-
-            <Button
-              className="export-button"
-              onClick={() =>
-                exportReport(
-                  reportData,
-                  formatDate(startDate),
-                  formatDate(endDate),
-                  employeeInput,
-                )
-              }
-            >
-              ⬇ Xuất báo cáo Excel
-            </Button>
-          </div>
-        </div>
-
-        <p>
-          Tổng số phản ánh
-          <span>{reportData.length}</span>
-        </p>
-      </div>
-
-      {/* ========================= */}
-      {/* FILTER INFO */}
-      {/* ========================= */}
-
-      <div className="report-filter-info">
-        {/* DATE */}
-
-        <div className="report-info-card">
-          <div className="info-header">
-            <div className="info-title">📅 Khoảng thời gian</div>
-
-            <button className="copy-button" onClick={handleCopyDate}>
-              Copy
-            </button>
-          </div>
-
-          <div className="info-content">
-            Từ ngày {formatDate(startDate)} đến ngày {formatDate(endDate)}
-          </div>
-        </div>
-
-        {/* EMPLOYEE */}
-
-        <div className="report-info-card">
-          <div className="info-header">
-            <div className="info-title">👤 Nhân viên</div>
-
-            <button className="copy-button" onClick={handleCopyEmployees}>
-              Copy
-            </button>
-          </div>
-
-          <div className="info-content">{employeeInput}</div>
-        </div>
-      </div>
-
-      {/* ========================= */}
-      {/* TABLE */}
-      {/* ========================= */}
-
-      <div className="report-table-wrapper">
-        <table className="report-table">
-          <thead>
-            <tr>
-              <th>STT</th>
-
-              <th>CHI NHÁNH</th>
-
-              <th>TUYẾN</th>
-
-              <th>BKS</th>
-
-              <th>Nội dung phản ánh</th>
-
-              <th>Nhân viên bị phản ánh</th>
-
-              <th>Không vi phạm</th>
-
-              <th>Vi phạm</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentRows.length > 0 ? (
-              currentRows.map((item) => (
-                <tr key={item.stt}>
-                  {/* STT */}
-                  <td>{item.stt}</td>
-
-                  {/* CHI NHÁNH */}
-                  <td>{item.chiNhanh}</td>
-
-                  {/* TUYẾN */}
-                  <td>{item.tuyen}</td>
-
-                  {/* BKS */}
-                  <td>{item.bks}</td>
-
-                  {/* NỘI DUNG */}
-                  <td>{item.noiDungPhanAnh}</td>
-
-                  {/* NHÂN VIÊN */}
-                  <td>{item.nhanVienBiPhanAnh}</td>
-
-                  {/* HỖ TRỢ KHÁCH HÀNG */}
-                  {item.khongViPham && Number(item.khongViPham) !== 1 ? (
-                    <td colSpan={2} className="support-customer">
-                      {item.khongViPham}
-                    </td>
-                  ) : (
-                    <>
-                      <td>{item.khongViPham}</td>
-
-                      <td>{item.viPham}</td>
-                    </>
-                  )}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={8}
-                  style={{
-                    textAlign: "center",
-                    padding: "40px",
-                    color: "#6b7280",
-                    fontStyle: "italic",
-                  }}
-                >
-                  Không có dữ liệu
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {/* =========================
-            PAGINATION
-        ========================= */}
-
-        {reportData.length > 0 && (
-          <div className="pagination">
-            {/* LEFT */}
-
-            <div className="pagination-left">
-              <span>Hiển thị</span>
-
-              <select
-                value={rowsPerPage}
-                onChange={(e) => {
-                  setRowsPerPage(Number(e.target.value));
-                  setPage(1);
-                }}
-              >
-                {[20, 50, 100].map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-
-              <span>dòng</span>
-            </div>
-
-            {/* CENTER */}
-
-            <div
-              style={{
-                color: "#6b7280",
-                fontWeight: 600,
-              }}
-            >
-              Trang {currentPage} / {totalPages}
-            </div>
-
-            {/* RIGHT */}
-
-            <div className="pagination-pages">
-              {/* PREV */}
-
-              <button
-                className="page-btn"
-                disabled={currentPage === 1}
-                onClick={() => setPage((prev) => prev - 1)}
-              >
-                ←
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    className={
-                      currentPage === page ? "page-btn active" : "page-btn"
-                    }
-                    onClick={() => setPage(page)}
-                  >
-                    {page}
-                  </button>
-                ),
-              )}
-
-              {/* NEXT */}
-
-              <button
-                className="page-btn"
-                disabled={currentPage === totalPages}
-                onClick={() => setPage((prev) => prev + 1)}
-              >
-                →
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      <ReportTable
+        data={data}
+        total={total}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        onPageChange={handlePage}
+        onPageSizeChange={handlePageSize}
+        onExport={handleExport}
+        onBack={handleBack}
+      />
+    </Layout>
   );
 }
+
+export default ReportPage;
