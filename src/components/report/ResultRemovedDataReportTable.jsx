@@ -1,4 +1,4 @@
-function ResultRemovedDataReport({ data = [] }) {
+function ResultRemovedDataReportTable({ data = [] }) {
   return (
     <div className="w-full overflow-x-auto">
       <table className="w-full border-collapse table-fixed">
@@ -35,9 +35,9 @@ function ResultRemovedDataReport({ data = [] }) {
         </thead>
 
         <tbody>
-          {data.map((item) => (
+          {data.map((item, index) => (
             <tr
-              key={item.STT}
+              key={`${item.STT}-${index}`}
               className="
                 border-b
                 transition-colors
@@ -74,4 +74,4 @@ function ResultRemovedDataReport({ data = [] }) {
   );
 }
 
-export default ResultRemovedDataReport;
+export default ResultRemovedDataReportTable;

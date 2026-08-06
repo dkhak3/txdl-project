@@ -1,4 +1,4 @@
-function ReportDataTable({ data = [] }) {
+function ReportDataTable({ data = [], currentPage = 1, pageSize = 20 }) {
   console.log("ReportDataTable data: ", data);
 
   return (
@@ -40,14 +40,14 @@ function ReportDataTable({ data = [] }) {
         <tbody>
           {data.map((item, index) => (
             <tr
-              key={item.STT}
+              key={`${item.STT}-${index}`}
               className="
                             border-b
                             hover:bg-orange-50
                             "
             >
               <td className="px-5 py-4 break-words whitespace-pre-wrap text-center font-medium">
-                {index++}
+                {(currentPage - 1) * pageSize + index + 1}
               </td>
 
               <td className="px-5 py-4 break-words whitespace-pre-wrap text-center">

@@ -55,7 +55,7 @@ function HomePage() {
 
     handleStartDateChange,
     handleEndDateChange,
-    handleEmployeeChange,
+    handleEmployeeInputChange,
 
     resetFilter,
   } = useFilter();
@@ -132,7 +132,7 @@ function HomePage() {
         employeeInput={employeeInput}
         onStartDateChange={handleStartDateChange}
         onEndDateChange={handleEndDateChange}
-        onEmployeeChange={handleEmployeeChange}
+        onEmployeeChange={handleEmployeeInputChange}
         /* Actions */
         onSearch={() =>
           handleSearch({

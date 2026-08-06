@@ -31,9 +31,9 @@ function ResultDataTable({ data = [] }) {
         </thead>
 
         <tbody>
-          {data.map((item) => (
+          {data.map((item, index) => (
             <tr
-              key={item.STT}
+              key={`${item.STT}-${index}`}
               className="
                 border-b
                 transition-colors

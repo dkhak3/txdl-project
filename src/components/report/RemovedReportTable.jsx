@@ -3,8 +3,10 @@ import Pagination from "../common/Pagination";
 import PageSizeSelector from "../common/PageSizeSelector";
 import ReportDataTable from "./ReportDataTable";
 import ReportTableHeader from "./ReportTableHeader";
+import ResultRemovedDataReportTable from "./ResultRemovedDataReportTable";
+import RemovedReportTableHeader from "./RemovedReportTableHeader";
 
-function ReportTable({
+function RemovedReportTable({
   data = [],
   total = 0,
 
@@ -21,7 +23,12 @@ function ReportTable({
 }) {
   return (
     <section className=" overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm mt-8">
-      <ReportTableHeader total={total} onExport={onExport} onBack={onBack} />
+      <RemovedReportTableHeader
+        data={data}
+        total={total}
+        onExport={onExport}
+        onBack={onBack}
+      />
 
       {/* Toolbar */}
       <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-6 py-4">
@@ -43,11 +50,7 @@ function ReportTable({
       {/* Table */}
       <div className="min-h-[420px]">
         {data.length > 0 ? (
-          <ReportDataTable
-            data={data}
-            currentPage={currentPage}
-            pageSize={pageSize}
-          />
+          <ResultRemovedDataReportTable data={data} />
         ) : (
           <EmptyState />
         )}
@@ -67,4 +70,4 @@ function ReportTable({
   );
 }
 
-export default ReportTable;
+export default RemovedReportTable;

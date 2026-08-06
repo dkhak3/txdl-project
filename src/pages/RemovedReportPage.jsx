@@ -1,104 +1,111 @@
+import { useMemo, useState } from "react";
+
 import { useSelector } from "react-redux";
 import { Navigate, useNavigate } from "react-router-dom";
 
 import Layout from "../components/layout/Layout";
-
-import Button from "../components/common/Button";
-import EmptyState from "../components/common/EmptyState";
+import RemovedReportTable from "../components/report/RemovedReportTable";
 
 import { selectResult } from "../redux/reportResultSlice";
-import ReportDataTable from "../components/report/ReportDataTable";
-import ResultRemovedDataReport from "../components/report/ResultRemovedDataReport";
+import toast from "react-hot-toast/headless";
+
+import useRemovedReportExport from "../hooks/useRemovedReportExport";
+import useFilter from "../hooks/useFilter";
 
 function RemovedReportPage() {
   const navigate = useNavigate();
+
+  const { startDate, endDate, employeeInput } = useFilter();
 
   const report = useSelector(selectResult);
 
   const removedRows = report.removedRows || [];
 
-  if (!removedRows.length) {
-    return <Navigate to="/report" replace />;
-  }
+  /* ============================
+      PAGINATION
+  ============================ */
 
-  console.log("Removed Rows:", removedRows);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pageSize, setPageSize] = useState(20);
+
+  const totalRecords = removedRows.length;
+
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
+
+  const currentData = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+
+    return removedRows.slice(start, start + pageSize);
+  }, [removedRows, currentPage, pageSize]);
+
+  /* ============================
+      EVENTS
+  ============================ */
+
+  const handlePage = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSize = (size) => {
+    setPageSize(size);
+    setCurrentPage(1);
+  };
 
   const handleBack = () => {
     navigate("/report");
   };
 
-  const handleExport = () => {
-    console.log("Export Removed Excel");
+  const { handleExport } = useRemovedReportExport();
+
+  const onExport = () => {
+    handleExport({
+      removedRows,
+      employeeName: employeeInput,
+    });
   };
+
+  if (!removedRows.length) {
+    return <Navigate to="/report" replace />;
+  }
 
   return (
     <Layout>
-      <div
+      {/* HERO */}
+
+      <section
         className="
           rounded-3xl
-          border
-          border-gray-200
-          bg-white
-          p-8
-          shadow-sm
+          bg-gradient-to-r
+          from-red-500
+          to-red-600
+          p-10
+          text-white
+          shadow-lg
         "
       >
-        <section
-          className="
-    rounded-3xl
-    bg-gradient-to-r
-    from-red-500
-    to-red-600
-    p-10
-    text-white
-    shadow-lg
-  "
-        >
-          <h1 className="text-4xl font-extrabold">
-            DANH SÁCH PHẢN ÁNH BỊ LOẠI
-          </h1>
+        <h1 className="text-4xl font-extrabold">DANH SÁCH PHẢN ÁNH BỊ LOẠI</h1>
 
-          <p className="mt-3 text-red-100 text-lg">
-            Các phản ánh không thể xử lý do không tìm thấy dữ liệu đối chiếu.
-          </p>
-        </section>
-        <div className="mb-8 flex items-center justify-between">
-          <div className="mt-8">
-            <div className="rounded-2xl border bg-white p-6 shadow">
-              <p className="text-gray-500">Tổng phản ánh bị loại:</p>
+        <p className="mt-3 text-lg text-red-100">
+          Các phản ánh không thể xử lý do không tìm thấy dữ liệu đối chiếu.
+        </p>
+      </section>
 
-              <h2 className="mt-2 text-4xl font-black text-red-600">
-                {removedRows.length}
-              </h2>
-            </div>
-          </div>
+      {/* TABLE */}
 
-          <div className="mt-8 flex justify-center gap-5">
-            <Button variant="success" onClick={handleExport}>
-              📄 Xuất Excel
-            </Button>
-
-            <Button variant="secondary" onClick={handleBack}>
-              ← Quay lại báo cáo chính
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className="
-          rounded-3xl
-          border
-          border-gray-200
-          bg-white
-          shadow-sm
-        "
-      >
-        {removedRows.length > 0 ? (
-          <ResultRemovedDataReport data={removedRows} />
-        ) : (
-          <EmptyState />
-        )}
+      <div className="mt-8">
+        <RemovedReportTable
+          data={currentData}
+          total={totalRecords}
+          totalRecords={totalRecords}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          onPageChange={handlePage}
+          onPageSizeChange={handlePageSize}
+          onExport={onExport}
+          onBack={handleBack}
+        />
       </div>
     </Layout>
   );
