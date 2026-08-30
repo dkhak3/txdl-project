@@ -18,7 +18,7 @@ function Footer() {
         TXDL REPORT SYSTEM V2.0
       </h2>
 
-      <p className="mt-2 text-gray-500">FUTA BUS LINES</p>
+      {/* <p className="mt-2 text-gray-500">FUTA BUS LINES</p> */}
 
       <p className="mt-2 text-gray-500">Developed by Nguyễn Hữu Duy Kha</p>
 

@@ -7,6 +7,7 @@ import "./index.css";
 import NoDataPage from "./pages/NoDataPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import RemovedReportPage from "./pages/RemovedReportPage";
+import VideoGuidePage from "./pages/VideoGuidePage";
 
 function App() {
   return (
@@ -16,6 +17,8 @@ function App() {
       <Route path="/report" element={<ReportPage />} />
 
       <Route path="/report/removed" element={<RemovedReportPage />} />
+
+      <Route path="/guide" element={<VideoGuidePage />} />
 
       <Route path="/no-data" element={<NoDataPage />} />
 

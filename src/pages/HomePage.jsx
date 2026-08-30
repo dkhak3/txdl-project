@@ -21,6 +21,7 @@ import Hero from "../components/dashboard/Hero";
 import StatisticGrid from "../components/dashboard/StatisticGrid";
 import ExcelFilter from "../components/filter/ExcelFilter";
 import ResultTable from "../components/report/ResultTable";
+import VideoGuideCard from "../components/guide/VideoGuideCard";
 
 function HomePage() {
   const dispatch = useDispatch();
@@ -115,7 +116,7 @@ function HomePage() {
   return (
     <Layout>
       <Hero />
-
+      <VideoGuideCard />
       {/* <StatisticGrid /> */}
 
       <ExcelFilter

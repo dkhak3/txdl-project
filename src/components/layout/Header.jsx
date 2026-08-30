@@ -33,24 +33,26 @@ function Header() {
         {/* LEFT */}
 
         <div className="flex items-center gap-4">
-          <Link to="/">
+          {/* <Link to="/">
             <img
               src="/logo-futa.png"
               alt="FUTA Logo"
               className="h-16 w-16 object-contain"
             />
-          </Link>
+          </Link> */}
           <div>
-            <h1
-              className="
+            <Link to="/">
+              <h1
+                className="
               text-3xl
               font-extrabold
               tracking-wide
               text-primary
               "
-            >
-              TXDL REPORT SYSTEM
-            </h1>
+              >
+                TXDL REPORT SYSTEM
+              </h1>
+            </Link>
 
             <p className="mt-1 text-sm text-gray-500">
               Hệ thống hỗ trợ trích xuất dữ liệu
